@@ -26,6 +26,6 @@ pages:
     - stack exec site -- build
   artifacts:
     paths:
-      - public
+      - _site
   only:
     - master
