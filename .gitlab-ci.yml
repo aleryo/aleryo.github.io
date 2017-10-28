@@ -5,6 +5,6 @@ pages:
   - cp -fr _site public
   artifacts:
     paths:
-    - public
+    - public/*
   only:
   - master
