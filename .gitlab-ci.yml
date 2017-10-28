@@ -1,9 +1,10 @@
+image: alpine:latest
 pages:
   stage: deploy
   script:
-    - cp -fr _site public
+  - cp -fr _site public
   artifacts:
     paths:
-      - public
+    - public
   only:
-    - master
+  - master
