@@ -1,5 +1,7 @@
 pages:
   stage: deploy
+  script:
+    - touch _site
   artifacts:
     paths:
       - _site
