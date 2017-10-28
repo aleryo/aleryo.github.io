@@ -1,9 +1,9 @@
 pages:
   stage: deploy
   script:
-    - touch _site
+    - cp -fr _site public
   artifacts:
     paths:
-      - _site
+      - public
   only:
     - master
