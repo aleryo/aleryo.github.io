@@ -1,0 +1,4 @@
+[submodule "_site"]
+	path = _site
+	url = git@github.com:aleryo/aleryo.github.io.git
+	branch = master
