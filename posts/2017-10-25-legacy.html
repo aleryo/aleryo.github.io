@@ -1,35 +1,17 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>My Hakyll Blog - Ils ne savaient pas que c’était impossible...</title>
-        <link rel="stylesheet" href="../css/default.css" />
-    </head>
-    <body>
-        <div id="header">
-            <div id="logo">
-                <a href="../">My Hakyll Blog</a>
-            </div>
-            <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="../archive.html">Archive</a>
-            </div>
-        </div>
-
-        <div id="content">
-            <h1>Ils ne savaient pas que c’était impossible...</h1>
-            <div class="info">
-    Posted on October 25, 2017
-    
-        by Aleryo
-    
-</div>
-
-<h1 id="votre-mission-si-vous-lacceptez">Votre mission, si vous l’acceptez…</h1>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aleryo - Ils ne savaient pas que c’était impossible...</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div id="content">
+        <div class="post">
+  <h1 id="votre-mission-si-vous-lacceptez">Votre mission, si vous l’acceptez…</h1>
 <h2 id="lagence-tous-risques">L’agence tous risques</h2>
 <p>Tout commence comme un banal appel d’offres pour la reprise en tierce maintenance applicative d’une application d’un éditeur dans le domaine de la finance : le client cherche une équipe avec un PO, un testeur, 1 développeur sénior et 2 juniors. L’application a une dizaine d’années, deux versions sont en production chez des clients et une nouvelle est en cours de développement pour livraison fin d’année, avec une pression importante de la direction pour démontrer une capacité à faire.</p>
 <p>Le client a en interne une équipe d’une dizaine de personnes mais cela ne semble pas suffire pour à la fois gérer la maintenance corrective et évolutive, et à la fois développer la nouvelle version d’où le besoin de “renforts”. Le client est prêt à travailler avec une équipe située en dehors de ses locaux mais cela n’a rien de très surprenant dans un contrat de TMA : combien de TMA sont elles délocalisées en province ou dans des pays à bas salaires ?</p>
@@ -44,18 +26,31 @@
 <h2 id="mission-impossible">Mission: Impossible</h2>
 <p>L’application est structurée en deux composants disjoints : un backend organisé selon le schéma des <a href="http://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html">pipes and filters</a> et un frontend de type application web. Entre les deux se trouve une base de données relationnelle d’un éditeur bien connu qui sert de mémoire partagée persistante entre les deux composants.</p>
 <p>Première surprise : le backend est codé dans un langage propriétaire multi-paradigmes, à la fois orienté-objets, fonctionnel et même logique, compilé<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> vers du C++. Au dessus de ce langage socle, l’équipe a développé un autre langage propriétaire, syntaxiquement structuré comme un langage à balises, dans lequel sont codés les processus métiers.</p>
+<p>Deuxième surprise : le frontend est certes codé en Java/Javascript/HTML dans une classique <em>webapp</em> JEE, mais il est structuré par un <em>framework</em> maison dont le but est de décrire le flux d’interaction des utilisateurs sous la forme de processus, des graphes dirigés reliant des pages, des requêtes SQL, des traitements…</p>
+<p>Troisième surprise (qui n’en est pas vraiment une) : il n’y a aucun test unitaire et très peu de tests automatisés qui couvrent globalement peu de fonctionnalités de l’appplication et uniquement dans le backend. Quelques efforts d’automatisation de tests sur le front ont été entrepris mais ils sont encore balbutiants et ne font pas partie du processus standard de développement.</p>
+<p>Nous nous retrouvons donc devant une base de code relativement conséquente, séparée en deux parties développées de manière indépendantes mais fortement couplés par une base de données dont le schéma se complexifie, sans tests, et avec une qualité d’écriture de code plutôt médiocre voire par endroits calamiteuses : copier-coller à outrance, règles de nommages incohérentes, couplage fort entre composants, fonctions et expressions complexes sur plusieurs dizaines de lignes, commentaires obsolètes voire contradictoires…</p>
+<p>L’équipe suit un processus de développement à la Scrum : stand-up meeting tous les matins, tableaux d’avancement des “user stories”, gestion d’icelles dans Jira, sprints de 2 semaines…</p>
 <div class="footnotes">
 <hr />
 <ol>
 <li id="fn1"><p>Nous découvrirons rapidement que le compilateur ne supporte que le 32 bits et qu’un portage vers du 64 bits demanderait un effort conséquent<a href="#fnref1">↩</a></p></li>
 </ol>
 </div>
+</div>
 
-        </div>
+      </div>
 
-        <div id="footer">
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
-        </div>
-    </body>
+      <div class="footer">
+        <p>
+          <a href="../">Acceuil</a>
+          ::
+          <a href="../about.html">A propos</a>
+          ::
+          <a href="../contact.html">Contact</a>
+          ::
+          <a href="../archive.html">Archive</a>
+        </p>
+      </div>
+    </div>
+  </body>
 </html>
