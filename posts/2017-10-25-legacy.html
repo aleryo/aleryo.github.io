@@ -29,7 +29,105 @@
 <p>Deuxième surprise : le frontend est certes codé en Java/Javascript/HTML dans une classique <em>webapp</em> JEE, mais il est structuré par un <em>framework</em> maison dont le but est de décrire le flux d’interaction des utilisateurs sous la forme de processus, des graphes dirigés reliant des pages, des requêtes SQL, des traitements…</p>
 <p>Troisième surprise (qui n’en est pas vraiment une) : il n’y a aucun test unitaire et très peu de tests automatisés qui couvrent globalement peu de fonctionnalités de l’appplication et uniquement dans le backend. Quelques efforts d’automatisation de tests sur le front ont été entrepris mais ils sont encore balbutiants et ne font pas partie du processus standard de développement.</p>
 <p>Nous nous retrouvons donc devant une base de code relativement conséquente, séparée en deux parties développées de manière indépendantes mais fortement couplés par une base de données dont le schéma se complexifie, sans tests, et avec une qualité d’écriture de code plutôt médiocre voire par endroits calamiteuses : copier-coller à outrance, règles de nommages incohérentes, couplage fort entre composants, fonctions et expressions complexes sur plusieurs dizaines de lignes, commentaires obsolètes voire contradictoires…</p>
-<p>L’équipe suit un processus de développement à la Scrum : stand-up meeting tous les matins, tableaux d’avancement des “user stories”, gestion d’icelles dans Jira, sprints de 2 semaines…</p>
+<p>L’équipe en place suit un processus de développement à la Scrum : stand-up meeting tous les matins, tableaux d’avancement des “user stories” dans Jira, sprints de 2 semaines, scrummaster, niko-niko… Malgré le contexte difficile d’une application vieillissante et rétive à toute modification, le moral et l’ambiance dans l’équipe semblent bons, le processus de développement apparaît plutôt bien suivi.</p>
+<h1 id="premiers-pas">Premiers pas</h1>
+<h2 id="prise-en-main">Prise en main</h2>
+<p>Nos premiers contacts avec le code du <em>backend</em> sont laborieux, le cycle de développement est long et pénible : * il faut tout d’abord écrire le code dans un langage que nous ne maîtrisons pas encore ; * le code étant en 32 bits, il nécessite l’installation d’une <em>toolchain</em> et de bibliothèques spécifiques, ainsi que le paramétrage du compilateur C ; * ce code doit ensuite être compilé et “packagé” à l’aide scripts et de commandes spécifiques et inhabituelles ; * pour exécuter ce code, il faut le déployer selon une structure de répertoire précise qui fait partie des sources ; * les scripts et le code de configuration contiennent beaucoup de chemins relatifs de type <code>../something</code> ce qui ne facilite pas la compréhension de leur structure ni de leurs effets ; * il y a plusieurs étapes manuelles nécessaires pour parvenir à obtenir un système fonctionnel ; * la bonne exécution de tout ce processus dépend de variables d’environnements dont la sémantique est floue.</p>
+<p>Tout cela prend beaucoup de temps - parfois quelques minutes - et est peu répetable - une installation peut modifier l’environnement de sorte que la prochaine installation échoue). Pour nous qui sommes habitués à un cycle trés rapide (2-3 secondes) pour écrire le code, le compiler, observer un résultat, c’est inacceptable.</p>
+<p>Notre premier étape pour prendre en main le système va donc consister à <em>automatiser</em> ce processus au travers de simples scripts de manière à compiler le code, la <em>packager</em> pour produire un paquet déployable, le déployer dans un répertoire, lancer le processus serveur. Lors de l’écriture de ces scripts, nous prenons bien garde à gérer correctement l’arborescence des répertoires : le script devra pouvoir être lancer de n’importe quel endroit et gérer correctement les chemins relatifs existant, ainsi que positionner les variables d’environnement nécessaires. Enfin, nous commencons par travailler sur un nouveau composant ce qui nous permet de mettre au point ce cycle de compilation-déploiement-exécution sans avoir à gérer le passif ni modifier les anciens composants.</p>
+<p>Assez rapidement nous atteignons une <em>cadence</em> qui nous permet de mieux comprendre ce qui se passe et partant de commencer à faire se mouvoir notre squelette de composant. Il devient possible de copier/coller du code existant en élaguant les parties non pertinentes et d’obtenir un module fonctionnel, capable de simplement copier ses entrées en sorties mais déployable, compilable, utilisable. L’étape suivante va consister à rajouter de la chair à ce squelette, ce qui nécessite de mettre en places des <em>tests</em> automatisés.</p>
+<h2 id="sous-toute-les-coutures">Sous toute les coutures</h2>
+<p>Après quelques heures de travail et d’automatisation du cycle de développement, nous comprenons mieux l’architecture du système:</p>
+<ul>
+<li>chaque composant est un <em>micro-service</em> isolable, qui peut se déployer indépendamment des autres, produit à partir de modules - bibliothèques pré-compilées ou directement importées sous forme de sources. Il faudra faire un travail sur les modules qui contiennent beaucoup de code redondant issu de vagues successives de copier-coller à la va-vite mais au moins nous pouvons travailler sur un sous-système isolé, plus simple ;</li>
+<li>chaque composant fonctionne comme un <em>processeur</em> relié à d’autres processeurs au moyen de <em>files</em> qui peuvent être en entrée ou en sortie ;</li>
+<li>ces files sont de diverses natures mais pour l’essentiel sont constituées de <em>répertoires</em> contenant des fichiers aux formats variés et d’une <em>base de données</em> ;</li>
+<li>chaque composant produit donc un résultat dans des files de sorties mais aussi des <em>logs</em> ;</li>
+<li>le traitement de la base de données comme une <em>file</em> en entrée - requêtes <code>SELECT</code> - ou en sorties - requêtes <code>INSERT</code> ou <code>UPDATE</code> - produit un certaine dissonance cognitive d’autant plus qu’il ne s’agit pas ici de <a href="https://en.wikipedia.org/wiki/StreamSQL">requêtes SQL en continu</a>, dissonance qui se constate dans le code où le traitement des requêtes SQL est significativement plus compliqué. Mais il a le mérite d’uniformiser les processus dans un même paradigme ;</li>
+</ul>
+<p>Ne maîtrisant pas - encore - le langage source, nous choisissons donc de commencer l’automatisation des tests par le <em>haut</em>, c’est-à-dire d’écrire des tests plutôt <em>systèmes</em> qui vont tester le comportement global d’un composant. Cette stratégie nécessite de construire un environnement d’exécution <em>propre</em> pour chaque test, donc d’isoler les données :</p>
+<ul>
+<li>l’arborescence des files d’entrées-sorties est créée automatiquement et de manière unique pour chaque test ;</li>
+<li>la base de données est exécutée dans un container <a href="https://github.com/wnameless/docker-oracle-xe-11g">docker</a> ce qui nous garantit que chaque exécution est isolée.</li>
+</ul>
+<h2 id="ceintures-et-bretelles">Ceintures et bretelles</h2>
+<p>Avoir des tests automatiques, repétables, isolés est une étape essentielle dans notre prise en main du système permettant de :</p>
+<ul>
+<li>réduire le temps de cycle de chaque développement et fluidifier le processus en évitant d’inévitables erreurs et oublis qu’introduiraient des étapes manuelles ;</li>
+<li>raccourcir la longueur des boucles de <em>feedback</em> et donc mieux guider notre développement ;</li>
+<li>créer des points de stabilité dans notre travail et pouvoir <em>commiter</em> sur des <em>barres vertes</em>.</li>
+</ul>
+<p>Ce harnais de test va se révéler fondamental pour nous aider à comprendre le système et surtout le langage et son écosystème.</p>
+<p>Se pose alors la question du langage dans lequel écrire ces tests systèmes. Aprés avoir hésité avec Haskell que nous maîtrisons plutôt bien, nous nous tournons vers Python qui présente de nombreux avantages:</p>
+<ul>
+<li>il est disponible facilement et fonctionne sans difficulté sur toutes les plate-formes ;</li>
+<li>il est facile à apprendre et à utiliser ce qui devrait lisser la courbe d’apprentissage pour d’autres personnes qui seraient amenées à rejoindre l’équipe ou travailler sur ces tests ;</li>
+<li>Haskell est un langage puissant mais peu abordable ;</li>
+<li>enfin python est très souple et dispose d’un outillage et d’un éco-système très riche pour gérer les aspects <em>systèmes</em>, de manière plus structurée que ne le permettrait le <em>shell</em>.</li>
+</ul>
+<p>Après quelques itérations nous sommes parvenus à nos fins :</p>
+<ul>
+<li>nous avons une boucle de rétroaction fiable et relativement rapide;</li>
+<li>nous pouvons développer notre code en le dirigeant par des tests plutôt fonctionnels ;</li>
+<li>nous maîtrisons mieux le système et sommes capables de le découper en unités plus petites.</li>
+</ul>
+<h1 id="évolution-des-tests">Évolution des tests</h1>
+<h2 id="réduire-lempreinte-carbone">Réduire l’empreinte carbone</h2>
+<p>Une fois passée l’euphorie des premières heures et lorsqu’il devient nécessaire de coder réellement des comportements plus fins, nous nous heurtons à une limite attendue de cette stratégie. Les tests python prennent de plus en plus de temps pour gérer la mise en place des données - base, fichiers, leur nettoyage après exécution ou manipuler des processus qui nécessitent d’utiliser des mécanismes de temporisations - attendre que le processus soit <em>up</em>, attendre qu’il soit <em>down</em> - fragiles et lents. Et par ailleurs, nos itérations de codage sont aussi plus longues car chaque test décrit une fonctionnalité de haut niveau qui nécessite plus de travail, donc introduit le risque de faire une erreur qui sera détectée plus tard.</p>
+<p>Il est nécessaire de raffiner nos tests, de descendre à un niveau de granularité plus fin et donc d’écrire des tests unitaires <em>dans le langage d’implémentation</em>. Les bénéfices attendus sont nombreux :</p>
+<ul>
+<li>cela devrait nous permettre de mieux comprendre le langage que nous manipulons ;</li>
+<li>de s’habituer à écrire du code dans ce langage donc à faire évoluer notre environnement de développement pour l’y adapter ;</li>
+<li>et bien sûr cela sera plus rapide à exécuter.</li>
+</ul>
+<p>Notre première étape et d’écrire les tests comme des fonctions dans un exécutable spécifique qui sera <em>linké</em> avec le code fonctionnel : chaque test prend la forme d’une fonciton <code>testXXX</code> se terminant par un appel à la fonction interne <code>assert</code>, et le <code>main</code> exécute l’ensemble des tests de manière séquentielle. Cette première approche nous permet rapidement d’écrire quelques dizaines de tests et de raccourcir encore la boucle de rétroaction.</p>
+<p>Dans une deuxième étape, nous sollicitons l’aide d’un architecte du client maîtrisant parfaitement le langage pour nous écrire un framework <em>XUnit</em>. Le passage à ce <em>framework</em> de test va réduire la duplication et le travail de “gestion” des tests en découvrant automatiquement les fonctions testables, et clarifier l’écriture des tests grâce à des fonctions <em>d’assertion</em> spécialisées.</p>
+<p>Après environ un mois de travail, nous sommes donc dans une situation relativement confortable pour développer sur cette partie <em>backend</em> : nous avons une batterie de tests fonctionnels automatisés qui nous aide dans la réalisation des fonctionnalités attendues du système ; et une batterie de tests unitaires qui nous aide dans les détails de l’écriture du code.</p>
+<h2 id="refactor-mercilessly">Refactor Mercilessly</h2>
+<p>Trois mois plus tard, nous constatons que les tests python sont devenus un <em>passif</em> en tant que tel :</p>
+<ul>
+<li>il y a beaucoup de duplication générée par du copié-collé</li>
+<li>la taille des fichiers de tests qui peut atteindre plus de 1000 lignes les rend ingérables et incompréhensibles ;</li>
+<li>les tests contiennent beaucoup de <em>technique</em> contenant l’automatisation des tâches techniques nécessaires à la mise en place du système ;</li>
+<li>l’intention fonctionnelle de chaque test est noyée dans ce bruit technique.</li>
+</ul>
+<p>Une conséquence immédiate de cette complication est que les nouveaux arrivant ont des difficultés à “habiter” le code des tests et à le prendre en main.</p>
+<h3 id="ce-qui-se-conçoit-bien-sénonce-clairement">Ce qui se conçoit bien s’énonce clairement</h3>
+<p>Nous profitons donc de l’arrivée dans l’équipe d’un nouveau membre pour qu’il nous guide vers des tests qui lui <em>parlent davantage</em>. Ce travail prend la forme de séances de binômage avec une personne connaissant le système existant et permet de réduire la taille des fonctions de tests en en extrayant des fonctions utilitaires initialisant les états de la base, par exemple <code>Db_should_contains_a_basket_with_a_discounted_product</code>.</p>
+<h3 id="refactoring-2">Refactoring 2:</h3>
+<p><strong>Bernard</strong> ??</p>
+<h3 id="passage-à-léchelle">Passage à l’échelle</h3>
+<p>Malgré ces <em>refactorings</em> une douleur importante persiste : il est difficile de créer un test <em>from scratch</em> pour une nouvelle fonctionnalité, cela oblige à copier/coller beaucoup de code, donc introduit de la duplication et accroît le degré d’entropie du code des tests.</p>
+<p>Nous allons donc regrouper toutes nos fonctions utilitaires dans 3 “univers”:</p>
+<ul>
+<li>la base de données:
+<ul>
+<li>l’insertion de données métier,</li>
+<li>les assertions sur le contenu de la base ;</li>
+</ul></li>
+<li>les processus systèmes:</li>
+<li>démarrage des processus et gestion des états,</li>
+<li>assertions sur les logs ;</li>
+<li>les fichiers:</li>
+<li>création des répertoires et manipulation des fichiers,</li>
+<li>assertions sur les répertoires et fichiers (taille, contenu, nom, structure…).</li>
+</ul>
+<p>Ces univers sont plutôt de l’ordre de la technique et non du <em>métier</em>. Il s’agit plus de traduire dans notre code et de représenter sous un forme exécutable le <em>langage</em> qui est utilisé au quotidien dans l’équipe que d’adopter une approche <em>orienté métier</em> ou <em>domaine</em> qui ne nous aide pas à améliorer le système et à rendre les tests plus lisibles. Le <em>bon</em> langage était celui de l’application et de son architecture et non pas celui de l’utilisateur.</p>
+<h2 id="quid-du-frontend">Quid du frontend ?</h2>
+<p>Parallèlement au travail sur le backend que nous avons détaillé ci-dessus, nous avons été amené à travailler aussi sur le frontend et bien évidemment nous avons voulu mettre en oeuvre la même approche. Mais cette stratégie n’a pas aussi bien fonctionné, malheureusement, bien que l’approche outside-in apparaisse tout aussi pertinente du fait de l’existence là aussi d’un important passif de code.</p>
+<p>À cela, nous pouvons identifier plusieurs raisons:</p>
+<ul>
+<li>la nature technique de l’appli: elle est uniquement testable dans navigateur ce qui implique une complexité de mise en oeuvre bien supérieure, et une fragilité plus importante :
+<ul>
+<li>c’est clairement (beaucoup) plus compliqué que de poser un fichier texte dans un répertoire et de lancer une commande ;</li>
+<li>il faut lancer un navigateur, éventuellement dans des containers, avec des résultats non-prédictibles ;</li>
+<li>la fragilité vient du fait de n’être pas certain d’avoir toujours le même résultat à chaque lancement</li>
+</ul></li>
+<li>l’investissement initial qui est beaucoup plus élevé avec des risques plus importants. Sur le <em>backend</em>, on a pu le faire sans avoir besoin de l’autorisation du sponsor mais sur le <em>frontend</em>, le temps de retour sur investissement n’était pas acceptable par le sponsor ;</li>
+<li>nous avons eu au moins un succés mineur : construire un modèle réduit d’application myBatis pour ne pas avoir à lancer tout le frontend lorsque l’on souhaite travailler uniquement sur les données et requêtes SQL.</li>
+</ul>
+<h1 id="conclusion">Conclusion</h1>
+<p>On a réussi parce qu’on ne savait pas que c’était impossible L’équipe est intéressé pour généraliser notre technique Approche outside-in -&gt; part des tests haut-niveau/fonctionnel/système puis redescend dans les composants techniques Ca pourrait etre la graine d’une réécriture dans une techno plus adaptée Pas besoin d’un framework pour commencer d’écrire des tests U Contre-intuitif: la partie écrite en Java/Javascript est celle qui nous a le plus posé de problèmes: très difficile à tester, pas de continuité dans l’architecture, empilage de frameworks…</p>
 <div class="footnotes">
 <hr />
 <ol>
