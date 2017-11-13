@@ -11,11 +11,12 @@
     <div class="container">
       <div id="content">
         <div class="post">
-  <h1 id="introduction">Introduction</h1>
+  <h1 id="ils-ne-savaient-pas-que-cétait-impossible">Ils ne savaient pas que c’était impossible…</h1>
+<h2 id="introduction">Introduction</h2>
 <p>Maintenir une <em>application patrimoniale</em> est souvent considérée comme une activité moins noble que concevoir un nouveau système. Une telle application utilise des technologies en voie d’obsolescence, peu susceptibles d’être valorisable sur un CV ; sa structure est souvent compliquée, étant le résultat de multiples décisions prises par des personnes différentes dans des contextes différents, parfois sous la pression de contraintes économiques ou organisationnelles fortes ; tout changement nécessite de prudentes manœuvres au travers d’un code contenant beaucoup de duplication, de code mort, de connaissance implicite difficile à découvrir. Et pourtant de telles applications ont beaucoup de valeurs pour les organisations les utilisant.</p>
 <p>Cet article est le récit de notre expérience récente sur une application de ce type, comment nous avons appliqué le <em>développement dirigé par les tests</em> et d’autres pratiques et principes de <em>l’eXtreme Programming</em> ; comment nous avons pu, pas à pas, mettre en place des harnais de test de plus en plus rapides et précis nous permettant d’accroître notre compréhension du système et notre capacité à le faire évoluer ; comment nous avons échoué à appliquer cette stratégie sur une partie de code.</p>
-<h1 id="lherbe-nest-pas-toujours-verte">L’herbe n’est pas toujours verte</h1>
-<h2 id="créer-une-équipe">Créer une équipe</h2>
+<h2 id="lherbe-nest-pas-toujours-verte">L’herbe n’est pas toujours verte</h2>
+<h3 id="créer-une-équipe">Créer une équipe</h3>
 <p>Notre point de départ est un appel d’offres pour la reprise en <em>tierce maintenance applicative</em> d’une application d’un éditeur dans le domaine de la finance : le client cherche une équipe avec un <em>Product Owner</em>, un testeur, une développeuse séniore et deux juniors. L’application a une dizaine d’années, deux versions sont en production chez des clients et une prochaine est en cours de développement pour livraison fin d’année sur laquelle une pression importante de la direction s’exerce.</p>
 <p>L’éditeur dispose en interne d’une équipe d’une dizaine de personnes mais cela ne semble pas suffire pour gérer la maintenance corrective et évolutive et développer la nouvelle version, d’où le besoin de “renforts”. Le client est prêt à travailler avec une équipe située en dehors de ses locaux mais cela n’a rien de très surprenant dans un contrat de TMA : combien sont délocalisées en province ou dans des pays à bas salaires ?</p>
 <p>Bref, rien de très excitant en apparence ! Mais nous avons un bon contact avec le client, le budget est adapté aux enjeux et nous avons envie de répondre positivement. Nous faisons donc une contre-proposition : pour le même budget, au lieu d’une équipe pyramidale de 5-6 personnes organisée comme un mini centre de services, nous proposons une équipe répartie auto-organisée de 4 personnes expérimentées:</p>
@@ -26,15 +27,15 @@
 <li>l’équipe mettra en oeuvre les pratiques et principes de l’<a href="http://extremeprogramming.org"><strong>eXtreme Programming</strong></a>, développement dirigé par les tests, intégration continue, boucles de rétroactions courtes, priorisation par la valeur métier…</li>
 </ul>
 <p>Après discussion rapide, le client est séduit par la proposition, accepte l’offre et organise un premier rendez-vous afin de nous présenter l’application et l’équipe.</p>
-<h2 id="découvrir-le-paysage">Découvrir le paysage</h2>
+<h3 id="découvrir-le-paysage">Découvrir le paysage</h3>
 <p>L’application est structurée en deux composants disjoints : un <em>backend</em> organisé selon le schéma des <a href="http://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html">pipes and filters</a>, un frontend de type application web. Entre les deux se trouve une base de données relationnelle classique qui sert de mémoire partagée persistante.</p>
 <p>Première surprise : le backend est codé dans un langage propriétaire multi-paradigmes, à la fois orienté-objet, fonctionnel et même logique, compilé vers du C++. Au dessus de ce langage socle, l’équipe a développé un autre langage propriétaire, syntaxiquement structuré comme un langage à balises, dans lequel sont codés les processus métiers.</p>
 <p>Deuxième surprise : le frontend est certes codé en Java/Javascript/HTML dans une classique <em>webapp</em> JEE, mais il est structuré par un <em>framework</em> maison dont le but est de décrire le flux d’interaction des utilisateurs sous la forme de processus, des graphes dirigés reliant des pages, des requêtes SQL, des traitements…</p>
 <p>Troisième surprise (qui n’en est pas vraiment une) : il n’y a aucun test unitaire et très peu de tests automatisés, ceux qui existent couvrant un périmètre de fonctionnalités restreint et uniquement dans le backend. Quelques efforts d’automatisation de tests sur le front ont été entrepris mais ils sont encore balbutiants et ne font pas partie du processus standard de développement.</p>
 <p>Nous nous retrouvons donc devant une base de code relativement conséquente, séparée en deux parties développées de manière indépendantes mais fortement couplées par une base de données dont le schéma se complexifie, sans tests, et avec une qualité d’écriture de code plutôt médiocre voire par endroits calamiteuse : copier-coller à outrance, beaucoup de code mort, règles de nommages incohérentes, couplage fort entre composants, fonctions et expressions complexes sur plusieurs dizaines de lignes, commentaires obsolètes voire contradictoires…</p>
 <p>L’équipe en place suit un processus de développement à la Scrum : stand-up meeting tous les matins, tableaux d’avancement des <em>user stories</em> dans Jira, sprints de deux semaines, scrummaster, niko-niko… Malgré le contexte difficile d’une application vieillissante et rétive à toute modification, le moral et l’ambiance dans l’équipe semblent bons, et le processus de développement apparaît plutôt bien suivi.</p>
-<h1 id="explorer">Explorer</h1>
-<h2 id="prise-en-main">Prise en main</h2>
+<h2 id="explorer">Explorer</h2>
+<h3 id="prise-en-main">Prise en main</h3>
 <p>Nos premiers contacts avec le code du <em>backend</em> sont laborieux, le cycle de développement est long et pénible :</p>
 <ul>
 <li>il faut tout d’abord écrire le code dans un langage que nous ne maîtrisons pas encore ;</li>
@@ -48,7 +49,7 @@
 <p>Chaque opération prend beaucoup de temps - parfois quelques minutes - et est peu répetable - une installation peut modifier l’environnement de sorte que la prochaine installation échoue. Pour nous qui sommes habitués à un cycle trés rapide (2-3 secondes) pour écrire le code, le compiler, observer un résultat, c’est inacceptable.</p>
 <p>Notre premiere étape pour prendre en main le système va donc consister à <em>automatiser</em> ce processus au travers de simples scripts afin de compiler le code, le <em>packager</em> pour produire un paquet déployable, le déployer dans un répertoire, lancer le processus serveur. Lors de l’écriture de ces scripts, nous prenons bien garde à gérer correctement l’arborescence des répertoires : le script devra pouvoir être lancer de n’importe quel endroit et gérer les chemins relatifs existant, ainsi que positionner les variables d’environnement nécessaires. Enfin, nous commencons par travailler sur un nouveau composant ce qui nous permet de mettre au point ce cycle de compilation-déploiement-exécution sans avoir à gérer le passif ni modifier de code existant.</p>
 <p>Assez rapidement nous atteignons une <em>cadence</em> qui nous permet de mieux comprendre ce qui se passe et partant de commencer à mouvoir notre squelette de composant. Il devient possible de copier/coller du code existant en élaguant les parties non pertinentes et d’obtenir un module fonctionnel, capable de simplement copier ses entrées en sorties mais déployable, compilable, utilisable. L’étape suivante va consister à rajouter de la chair à ce squelette, ce qui nécessite de mettre en places des <em>tests</em> automatisés.</p>
-<h2 id="sous-toute-les-coutures">Sous toute les coutures</h2>
+<h3 id="sous-toute-les-coutures">Sous toute les coutures</h3>
 <p>Après quelques heures de travail et d’automatisation du cycle de développement, nous comprenons mieux l’architecture du système:</p>
 <ul>
 <li>chaque composant est un <em>micro-service</em> isolé, déployable indépendamment, construit à partir de modules - bibliothèques pré-compilées ou directement importées sous forme de sources. Il faudra faire un travail sur les modules contenant beaucoup de code redondant issu de vagues successives de copier-coller à la va-vite, mais au moins nous pouvons travailler sur un sous-système isolé, plus simple ;</li>
@@ -62,7 +63,7 @@
 <li>l’arborescence des files d’entrées-sorties est créée automatiquement et de manière unique pour chaque test ;</li>
 <li>la base de données est exécutée dans un container <a href="https://github.com/wnameless/docker-oracle-xe-11g">docker</a> ce qui nous garantit que chaque exécution est isolée.</li>
 </ul>
-<h2 id="ceintures-et-bretelles">Ceintures et bretelles</h2>
+<h3 id="ceintures-et-bretelles">Ceintures et bretelles</h3>
 <p>Avoir des tests automatiques, repétables, isolés est une étape essentielle dans notre prise en main du système permettant de :</p>
 <ul>
 <li>réduire le temps de cycle de chaque développement et fluidifier le processus en évitant d’inévitables erreurs et oublis qu’introduiraient des étapes manuelles ;</li>
@@ -82,8 +83,8 @@
 <li>nous pouvons développer notre code en le dirigeant par des tests plutôt fonctionnels ;</li>
 <li>nous maîtrisons mieux le système et sommes capables de le découper en unités plus petites.</li>
 </ul>
-<h1 id="évolution-des-tests">Évolution des tests</h1>
-<h2 id="réduire-lempreinte-carbone">Réduire l’empreinte carbone</h2>
+<h2 id="évolution-des-tests">Évolution des tests</h2>
+<h3 id="réduire-lempreinte-carbone">Réduire l’empreinte carbone</h3>
 <p>Une fois passée l’euphorie des premières heures et lorsqu’il devient nécessaire de coder réellement des comportements plus fins, nous nous heurtons à une limite attendue de cette stratégie. Les tests python prennent de plus en plus de temps pour gérer la mise en place des données: base, fichiers, nettoyage après exécution, manipulation des processus qui nécessitent d’utiliser des mécanismes de temporisations, tout cela est fragile et lent. Nos itérations de codage sont aussi plus longues car chaque test décrit une fonctionnalité de haut niveau qui nécessite plus de travail, donc introduit le risque de faire une erreur qui sera détectée plus tard.</p>
 <p>Il est nécessaire de raffiner nos tests, de descendre à un niveau de granularité plus fin et donc d’écrire des tests unitaires <em>dans le langage d’implémentation</em>. Les bénéfices attendus sont nombreux :</p>
 <ul>
@@ -94,7 +95,7 @@
 <p>Notre première étape et d’écrire les tests comme des fonctions dans un exécutable spécifique qui sera <em>linké</em> avec le code fonctionnel : chaque test prend la forme d’une fonction <code>testXXX</code> se terminant par un appel à la fonction interne <code>assert</code>, et le <code>main</code> exécute l’ensemble des tests de manière séquentielle. Cette première approche nous permet rapidement d’écrire quelques dizaines de tests et de raccourcir encore la boucle de rétroaction.</p>
 <p>Dans une deuxième étape, nous sollicitons l’aide d’un architecte du client maîtrisant parfaitement le langage pour nous écrire un framework <em>XUnit</em>. Le passage à ce <em>framework</em> de test va réduire la duplication et le travail de “gestion” des tests en découvrant automatiquement les fonctions testables, et clarifier l’écriture des tests grâce à des fonctions <em>d’assertion</em> spécialisées.</p>
 <p>Après environ un mois de travail, nous sommes donc dans une situation relativement confortable pour développer sur cette partie <em>backend</em> : nous avons une batterie de tests fonctionnels automatisés qui nous aide dans la réalisation des fonctionnalités attendues du système ; et une batterie de tests unitaires qui nous aide dans les détails de l’écriture du code.</p>
-<h2 id="refactor-mercilessly">Refactor Mercilessly</h2>
+<h3 id="refactor-mercilessly">Refactor Mercilessly</h3>
 <p>Trois mois plus tard, nous constatons que les tests python sont devenus un <em>passif</em> en tant que tel :</p>
 <ul>
 <li>il y a beaucoup de duplication générée par du copier-coller ;</li>
@@ -104,7 +105,7 @@
 </ul>
 <p>Une conséquence immédiate de cette complication est que les nouveaux arrivant ont des difficultés à “habiter” le code des tests et à le prendre en main.</p>
 <p>Nous profitons donc de l’arrivée dans l’équipe d’un nouveau membre pour qu’il nous guide vers des tests qui lui <em>parlent davantage</em>. Ce travail prend la forme de séances de binômage avec une personne connaissant le système existant et permet de réduire la taille des fonctions de tests en en extrayant des fonctions utilitaires initialisant les états de la base, par exemple <code>Db_should_contains_a_basket_with_a_discounted_product</code>.</p>
-<h3 id="passage-à-léchelle">Passage à l’échelle</h3>
+<h4 id="passage-à-léchelle">Passage à l’échelle</h4>
 <p>Malgré ces <em>refactorings</em> une douleur importante persiste : il est difficile de créer un test <em>from scratch</em> pour une nouvelle fonctionnalité, cela oblige à copier/coller beaucoup de code, donc introduit de la duplication et accroît le degré d’entropie du code des tests.</p>
 <p>Nous allons donc regrouper toutes nos fonctions utilitaires dans 3 “univers”:</p>
 <ul>
@@ -121,7 +122,7 @@
 <li>assertions sur les répertoires et fichiers (taille, contenu, nom, structure…).</li>
 </ul>
 <p>Ces univers sont plutôt de l’ordre de la technique et non du <em>métier</em>. Il s’agit plus de traduire dans notre code et de représenter sous un forme exécutable le <em>langage</em> qui est utilisé au quotidien dans l’équipe que d’adopter une approche <em>orienté métier</em> ou <em>domaine</em> qui ne nous aide pas à améliorer le système et à rendre les tests plus lisibles. Le <em>bon</em> langage est ici celui de l’application et de son architecture et non pas celui de l’utilisateur.</p>
-<h2 id="quid-du-frontend">Quid du frontend ?</h2>
+<h3 id="quid-du-frontend">Quid du frontend ?</h3>
 <p>Parallèlement au travail sur le backend que nous avons détaillé ci-dessus, nous avons été amené à travailler aussi sur le <em>frontend|</em> et, bien évidemment, nous avons voulu mettre en œuvre la même approche. Mais cette stratégie n’a pas aussi bien fonctionné, malheureusement, bien que l’approche <em>outside-in</em> apparaisse tout aussi pertinente du fait de l’existence d’un important passif.</p>
 <p>À cela, nous pouvons identifier plusieurs raisons:</p>
 <ul>
@@ -134,7 +135,7 @@
 <li>l’investissement initial qui est beaucoup plus élevé avec des risques plus importants. Sur le <em>backend</em>, nous avons pu le faire sans avoir besoin de l’autorisation du sponsor mais sur le <em>frontend</em>, le temps de retour sur investissement n’était pas acceptable par le sponsor ;</li>
 <li>nous avons eu au moins un succés mineur : construire un modèle réduit d’application myBatis pour ne pas avoir à lancer tout le frontend lorsque l’on souhaite travailler uniquement sur les données et requêtes SQL.</li>
 </ul>
-<h1 id="conclusion">Conclusion</h1>
+<h2 id="conclusion">Conclusion</h2>
 <p>Par manque de recul et sous la pression du quotidien, l’équipe en place avait estimée qu’il était impossible de faire des tests automatisés à l’interieur de ce code, la seule stratégie envisagée étant de délocaliser l’exécution de tests non régression manuels vers des pays à bas salaires.</p>
 <p>Nous avons pris le parti d’aborder cette application avec les mêmes outils et principes qui nous avaient réussis dans d’autres contextes : rester concentré sur la valeur métier produite, éviter de longs tunnels de <em>refactoring</em>, ne pas chercher à utiliser ou créer des frameworks compliqués, s’appuyer sur des fonctionnalités disponibles nativement dans les langages utilisés, enfin et surtout automatiser et raccourcir la boucle de rétroaction.</p>
 <p>Cette stratégie, facilitée par la conception modulaire du <em>backend</em>, s’est avérée payante et ce harnais de tests pourrait servir de graine pour aller vers des <em>refactoring</em> plus larges. Et, nous l’espérons, vers une migration technique attendue par toute l’équipe.</p>
