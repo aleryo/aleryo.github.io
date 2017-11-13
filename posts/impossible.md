@@ -4,7 +4,9 @@ author: Aleryo
 date: 2017-11-13
 ---
 
-# Introduction
+# Ils ne savaient pas que c’était impossible...
+
+## Introduction
 
 Maintenir une _application patrimoniale_ est souvent considérée comme une
 activité moins noble que concevoir un nouveau système. Une telle application
@@ -25,9 +27,9 @@ précis nous permettant d'accroître notre compréhension du système et notre
 capacité à le faire évoluer ; comment nous avons échoué à appliquer cette
 stratégie sur une partie de code.
 
-# L'herbe n'est pas toujours verte
+## L'herbe n'est pas toujours verte
 
-## Créer une équipe
+### Créer une équipe
 
 Notre point de départ est un appel d'offres pour la reprise en _tierce
 maintenance applicative_ d'une application d'un éditeur dans le domaine de la
@@ -67,7 +69,7 @@ Après discussion rapide, le client est séduit par la proposition, accepte
 l'offre et organise un premier rendez-vous afin de nous présenter l'application
 et l'équipe.
 
-## Découvrir le paysage
+### Découvrir le paysage
 
 L'application est structurée en deux composants disjoints : un _backend_
 organisé selon le schéma des [pipes and filters](http://www.enterpriseintegrationpatterns.com/patterns/messaging/PipesAndFilters.html),
@@ -108,9 +110,9 @@ d'une application vieillissante et rétive à toute modification, le moral et
 l'ambiance dans l'équipe semblent bons, et le processus de développement
 apparaît plutôt bien suivi.
 
-# Explorer
+## Explorer
 
-## Prise en main
+### Prise en main
 
 Nos premiers contacts avec le code du _backend_ sont laborieux, le cycle de
 développement est long et pénible :
@@ -157,7 +159,7 @@ simplement copier ses entrées en sorties mais déployable, compilable,
 utilisable. L'étape suivante va consister à rajouter de la chair à ce squelette,
 ce qui nécessite de mettre en places des _tests_ automatisés.
 
-## Sous toute les coutures
+### Sous toute les coutures
 
 Après quelques heures de travail et d'automatisation du cycle de développement,
 nous comprenons mieux l'architecture du système:
@@ -195,7 +197,7 @@ chaque test, donc d'isoler les données :
   container [docker](https://github.com/wnameless/docker-oracle-xe-11g) ce qui
   nous garantit que chaque exécution est isolée.
 
-## Ceintures et bretelles
+### Ceintures et bretelles
 
 Avoir des tests automatiques, repétables, isolés est une étape essentielle dans
 notre prise en main du système permettant de :
@@ -229,9 +231,9 @@ Après quelques itérations nous sommes parvenus à nos fins :
 * nous pouvons développer notre code en le dirigeant par des tests plutôt fonctionnels ;
 * nous maîtrisons mieux le système et sommes capables de le découper en unités plus petites.
 
-# Évolution des tests
+## Évolution des tests
 
-## Réduire l'empreinte carbone
+### Réduire l'empreinte carbone
 
 Une fois passée l'euphorie des premières heures et lorsqu'il devient nécessaire
 de coder réellement des comportements plus fins, nous nous heurtons à une limite
@@ -271,7 +273,7 @@ une batterie de tests fonctionnels automatisés qui nous aide dans la réalisati
 des fonctionnalités attendues du système ; et une batterie de tests unitaires
 qui nous aide dans les détails de l'écriture du code.
 
-## Refactor Mercilessly
+### Refactor Mercilessly
 
 Trois mois plus tard, nous constatons que les tests python sont devenus un
 _passif_ en tant que tel :
@@ -293,7 +295,7 @@ permet de réduire la taille des fonctions de tests en en extrayant des fonction
 utilitaires initialisant les états de la base, par exemple
 `Db_should_contains_a_basket_with_a_discounted_product`.
 
-### Passage à l'échelle
+#### Passage à l'échelle
 
 Malgré ces _refactorings_ une douleur importante persiste : il est difficile de
 créer un test _from scratch_ pour une nouvelle fonctionnalité, cela oblige à
@@ -319,7 +321,7 @@ _orienté métier_ ou _domaine_ qui ne nous aide pas à améliorer le système e
 rendre les tests plus lisibles. Le _bon_ langage est ici celui de l’application
 et de son architecture et non pas celui de l’utilisateur.
 
-## Quid du frontend ?
+### Quid du frontend ?
 
 Parallèlement au travail sur le backend que nous avons détaillé ci-dessus, nous
 avons été amené à travailler aussi sur le _frontend|_ et, bien évidemment, nous
@@ -343,7 +345,7 @@ tout aussi pertinente du fait de l'existence d'un important passif.
   d'application myBatis pour ne pas avoir à lancer tout le frontend lorsque l'on
   souhaite travailler uniquement sur les données et requêtes SQL.
 
-# Conclusion
+## Conclusion
 
 Par manque de recul et sous la pression du quotidien, l'équipe en
 place avait estimée qu'il était impossible de faire des tests
