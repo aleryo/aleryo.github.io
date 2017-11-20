@@ -103,7 +103,10 @@
 <li>l’intention fonctionnelle de chaque test est noyée dans ce bruit technique.</li>
 </ul>
 <p>Une conséquence immédiate de cette complication est que les nouveaux arrivant ont des difficultés à “habiter” le code des tests et à le prendre en main.</p>
+<h3 id="ce-qui-se-conçoit-bien-sénonce-clairement">Ce qui se conçoit bien s’énonce clairement</h3>
 <p>Nous profitons donc de l’arrivée dans l’équipe d’un nouveau membre pour qu’il nous guide vers des tests qui lui <em>parlent davantage</em>. Ce travail prend la forme de séances de binômage avec une personne connaissant le système existant et permet de réduire la taille des fonctions de tests en en extrayant des fonctions utilitaires initialisant les états de la base, par exemple <code>Db_should_contains_a_basket_with_a_discounted_product</code>.</p>
+<h3 id="refactoring-2">Refactoring 2:</h3>
+<p><strong>Bernard</strong> ??</p>
 <h3 id="passage-à-léchelle">Passage à l’échelle</h3>
 <p>Malgré ces <em>refactorings</em> une douleur importante persiste : il est difficile de créer un test <em>from scratch</em> pour une nouvelle fonctionnalité, cela oblige à copier/coller beaucoup de code, donc introduit de la duplication et accroît le degré d’entropie du code des tests.</p>
 <p>Nous allons donc regrouper toutes nos fonctions utilitaires dans 3 “univers”:</p>
@@ -137,8 +140,8 @@
 <h1 id="conclusion">Conclusion</h1>
 <p>Par manque de recul et sous la pression du quotidien, l’équipe en place avait estimée qu’il était impossible de faire des tests automatisés à l’interieur de ce code, la seule stratégie envisagée étant de délocaliser l’exécution de tests non régression manuels vers des pays à bas salaires.</p>
 <p>Nous avons pris le parti d’aborder cette application avec les mêmes outils et principes qui nous avaient réussis dans d’autres contextes : rester concentré sur la valeur métier produite, éviter de longs tunnels de <em>refactoring</em>, ne pas chercher à utiliser ou créer des frameworks compliqués, s’appuyer sur des fonctionnalités disponibles nativement dans les langages utilisés, enfin et surtout automatiser et raccourcir la boucle de rétroaction.</p>
-<p>Cette stratégie, facilitée par la conception modulaire du <em>backend</em>, s’est avérée payante et ce harnais de tests pourrait servir de graine pour aller vers des <em>refactoring</em> plus larges. Et, nous l’espérons, vers une migration technique attendue par toute l’équipe.</p>
-<p>Même si le <em>front-end</em> s’est avéré plus rétif à nos efforts, nous n’avons pas baissé les bras. Un <em>refactoring</em> progressif est probablement trop risqué et coûteux et nous envisageons une autre stratégie : faire croître un deuxieme <em>front-end</em> à coté de l’existant.</p>
+<p>Cette stratégie, facilitée par la conception modulaire du backend, s’est avérée payante et ce harnais de tests pourrait servir de graine pour aller vers des <em>refactoring</em> plus larges. Et, nous l’espérons, vers une migration technique attendue par toute l’équipe.</p>
+<p>Même si le front-end s’est avéré plus rétif à nos efforts, nous n’avons pas baissé les bras. Un refactoring progressif est probablement trop risqué et couteux mais nous travaillons déjà sur une stratégie qui permettrait de faire croitre un deuxieme front-end à coté de celui qui existe et qui pourrait le remplacer dans un horizon qui pourrait etre plus proche que ce que l’histoire de l’application pourrait nous laisser penser.</p>
 </div>
 
       </div>
