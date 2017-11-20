@@ -1,20 +1,7 @@
 ---
-title: About
+title: À propos
 ---
 
-# Creation logicielle
+Aleryo est une coopérative de production de logiciels combinant de manière unique les principes et pratiques de l'artisanat logiciel, du développement agile et de la programmation fonctionnelle.
 
-Nullam imperdiet sodales orci vitae molestie. Nunc quam orci, pharetra a
-rhoncus vitae, eleifend id felis. Suspendisse potenti. Etiam vitae urna orci.
-Quisque pellentesque dignissim felis, egestas tempus urna luctus vitae. In hac
-habitasse platea dictumst. Morbi fringilla mattis odio, et mattis tellus
-accumsan vitae.
-
-1. Amamus Unicode 碁
-2. Interdum nex magna.
-
-Vivamus eget mauris sit amet nulla laoreet lobortis. Nulla in diam elementum
-risus convallis commodo. Cras vehicula varius dui vitae facilisis. Proin
-elementum libero eget leo aliquet quis euismod orci vestibulum. Duis rhoncus
-lorem consequat tellus vestibulum aliquam. Quisque orci orci, malesuada porta
-blandit et, interdum nec magna.
+Notre expérience nous permet tout autant de créer des produits logiciels innovants utilisant les techniques les plus modernes de développement (Cloud, TDD, Event Sourcing…) qu'améliorer des applications existantes ou legacy, quelle que soit leur technologie.

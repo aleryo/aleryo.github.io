@@ -2,6 +2,10 @@
 title: Contact
 ---
 
+Mail
 
-I live in a small hut in the mountains of Kumano Kodō on Kii Hantō and would not
-like to be contacted.
+:  [contact@aleryo.com](mailto:contact@aleryo.com)
+
+Twitter
+
+  [@AleryoTeam](http://twitter.com/AleryoTeam)
