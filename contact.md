@@ -8,4 +8,4 @@ Mail
 
 Twitter
 
-:  [@AleryoTeam](http://twitter.com/AleryoTeam)
+:  [AleryoTeam](http://twitter.com/AleryoTeam)
