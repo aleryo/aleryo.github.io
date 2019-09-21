@@ -3,3 +3,7 @@ defaults:
       path: ""
     values:
       layout: "default"
+  - scope:
+      path: "formations"
+    values:
+      layout: "formation"
